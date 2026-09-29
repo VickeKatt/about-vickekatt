@@ -25,6 +25,8 @@ app.command("/about-vickekatt-ping", async ({ command, ack, respond }) => {
   console.log(`Ping command executed by ${command.user_name} Latency: ${latency}ms`);
 });
 
+
+
 //catfact - Get a cat fact
 
 app.command("/about-vickekatt-catfact", async ({ command, ack, respond }) => {
@@ -39,6 +41,8 @@ app.command("/about-vickekatt-catfact", async ({ command, ack, respond }) => {
     console.error("Error fetching cat fact:", err);
   }
 });
+
+
 
 //joke - Get a random joke
 
@@ -60,17 +64,90 @@ ${response.data.punchline}`
   }
 });
 
-//clear - Clear the chat for the user (Note: This command will only send a message to the user, it won't actually clear the chat history)
 
-app.command("/about-vickekatt-clear", async ({ command, ack, respond }) => {
+
+//github - Show GitHub stats
+
+app.command("/about-vickekatt-github", async ({ command, ack, respond }) => {
   await ack();
 
-  await respond({
-    text: Array(50).fill("\u200B").join("\n")
-  });
+  try {
+    const userResponse = await axios.get(
+      "https://api.github.com/users/VickeKatt"
+    );
 
-  console.log(`Clear command executed by ${command.user_name}`);
+    let repos = [];
+    let repoPage = 1;
+
+    while (true) {
+      const response = await axios.get(
+        `https://api.github.com/users/VickeKatt/repos?per_page=100&page=${repoPage}`
+      );
+
+      repos.push(...response.data);
+
+      if (response.data.length < 100) {
+        break;
+      }
+
+      repoPage++;
+    }
+
+    const stars = repos.reduce(
+      (total, repo) => total + repo.stargazers_count,
+      0
+    );
+
+    let commits = 0;
+
+    for (const repo of repos) {
+      let commitPage = 1;
+
+      while (true) {
+        try {
+          const response = await axios.get(
+            `https://api.github.com/repos/VickeKatt/${repo.name}/commits?per_page=100&page=${commitPage}`
+          );
+
+          commits += response.data.length;
+
+          if (response.data.length < 100) {
+            break;
+          }
+
+          commitPage++;
+        } catch (err) {
+          console.error(`Failed to fetch commits for ${repo.name}`);
+          break;
+        }
+      }
+    }
+
+    await respond({
+      text:
+`*VickeKatt GitHub Stats*
+
+Repositories: ${userResponse.data.public_repos}
+Commits: ${commits}
+Stars: ${stars}
+Followers: ${userResponse.data.followers}
+
+https://github.com/VickeKatt`
+    });
+
+    console.log(
+      `GitHub stats command executed by ${command.user_name}`
+    );
+  } catch (err) {
+    console.error("GitHub API error:", err);
+
+    await respond({
+      text: "Failed to fetch GitHub statistics."
+    });
+  }
 });
+
+
 
 //help - Show help message
 
