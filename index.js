@@ -64,7 +64,30 @@ ${response.data.punchline}`
   }
 });
 
+//eightball - Get a random 8ball response
 
+app.command("/about-vickekatt-8ball", async ({ command, ack, respond }) => {
+  await ack();
+
+  try {
+    const response = await axios.get(
+      "https://eightballapi.com/api?locale=en"
+    );
+    
+    const answer = response.data.reading;
+
+    await respond({
+      text: ` 8-ball says: ${answer}`
+    });
+
+    console.log(`8Ball command executed by ${command.user_name}`);
+  } catch (err) {
+    console.error("8Ball API error:", err);
+    await respond({
+      text: "Failed to fetch 8-ball response, please try again later."
+    });
+  }
+});
 
 //github - Show GitHub stats
 
@@ -159,17 +182,19 @@ app.command("/about-vickekatt-help", async ({ command, ack, respond }) => {
 
 Technical Commands:
 
-/about-vickekatt-ping - Check bot latency
-/about-vickekatt-help - Show this help message
+/about-vickekatt-ping    - Check bot latency
+/about-vickekatt-help    - Show this help message
 
     
 Fun Commands:
 
 /about-vickekatt-catfact - Get a cat fact
-/about-vickekatt-joke - Get a random joke
+/about-vickekatt-joke    - Get a random joke
+/about-vickekatt-8ball   - Get a random Magic 8-Ball response
 
 
 Main Commands:
+/about-vickekatt-github  - Show GitHub stats
 
 
 Note:
